@@ -225,6 +225,35 @@ body {
   text-align: center;
 }
 
+.range-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 14px;
+}
+.range-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.range-label {
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  color: rgba(32,31,26,0.55);
+}
+.range-sep {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: rgba(32,31,26,0.4);
+  margin-top: 16px;
+}
+.counter-small { gap: 10px; margin-top: 0; }
+.counter-small .counter-value { font-size: 1.5rem; min-width: 28px; }
+.counter-small .btn-counter { width: 32px; height: 32px; font-size: 0.95rem; }
+
 /* Briefing / passing screen */
 .folder-pass, .folder-question {
   text-align: center;

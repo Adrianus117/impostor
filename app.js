@@ -7,10 +7,12 @@
   /** @type {{
    *  screen: string,
    *  players: string[],
-   *  impostorCount: number,
+   *  impostorMin: number,
+   *  impostorMax: number,
    *  round: null | {
    *    order: string[],
    *    impostors: Set<string>,
+   *    impostorCount: number,
    *    pair: {category: string, crew: string, impostor: string},
    *    turnIndex: number,
    *    revealed: boolean,
@@ -22,7 +24,8 @@
   const state = {
     screen: "setup",
     players: loadPlayers(),
-    impostorCount: 1,
+    impostorMin: 1,
+    impostorMax: 1,
     round: null,
     newPlayerDraft: "",
   };
@@ -55,6 +58,12 @@
 
   function maxImpostors() {
     return Math.max(1, state.players.length - 2);
+  }
+
+  function randomInRange(min, max) {
+    const lo = Math.min(min, max);
+    const hi = Math.max(min, max);
+    return lo + Math.floor(Math.random() * (hi - lo + 1));
   }
 
   function el(tag, attrs, children) {
@@ -156,34 +165,69 @@
     card.appendChild(addRow);
     wrap.appendChild(card);
 
-    // Impostor count
+    // Impostor count range
     const countCard = el("div", { class: "folder" });
     countCard.appendChild(el("div", { class: "folder-tab folder-tab-amber" }, ["ANZAHL IMPOSTOR"]));
     const canPlay = state.players.length >= 3;
-    if (state.impostorCount > maxImpostors()) state.impostorCount = 1;
+    const cap = maxImpostors();
+    if (state.impostorMin > cap) state.impostorMin = 1;
+    if (state.impostorMax > cap) state.impostorMax = cap;
+    if (state.impostorMin > state.impostorMax) state.impostorMax = state.impostorMin;
 
-    const counter = el("div", { class: "counter" });
-    const countLabel = el("div", { class: "counter-value" }, [String(state.impostorCount)]);
-    counter.appendChild(el("button", {
-      class: "btn-icon btn-counter",
-      onclick: () => {
-        if (state.impostorCount > 1) state.impostorCount--;
-        render();
-      },
-    }, ["−"]));
-    counter.appendChild(countLabel);
-    counter.appendChild(el("button", {
-      class: "btn-icon btn-counter",
-      onclick: () => {
-        if (state.impostorCount < maxImpostors()) state.impostorCount++;
-        render();
-      },
-    }, ["+"]));
-    countCard.appendChild(counter);
+    const rangeRow = el("div", { class: "range-row" });
+
+    const minBlock = el("div", { class: "range-block" }, [
+      el("span", { class: "range-label" }, ["MIN"]),
+      el("div", { class: "counter counter-small" }, [
+        el("button", {
+          class: "btn-icon btn-counter",
+          onclick: () => {
+            if (state.impostorMin > 1) state.impostorMin--;
+            render();
+          },
+        }, ["−"]),
+        el("div", { class: "counter-value" }, [String(state.impostorMin)]),
+        el("button", {
+          class: "btn-icon btn-counter",
+          onclick: () => {
+            if (state.impostorMin < cap) { state.impostorMin++; if (state.impostorMax < state.impostorMin) state.impostorMax = state.impostorMin; }
+            render();
+          },
+        }, ["+"]),
+      ]),
+    ]);
+
+    const maxBlock = el("div", { class: "range-block" }, [
+      el("span", { class: "range-label" }, ["MAX"]),
+      el("div", { class: "counter counter-small" }, [
+        el("button", {
+          class: "btn-icon btn-counter",
+          onclick: () => {
+            if (state.impostorMax > state.impostorMin) state.impostorMax--;
+            render();
+          },
+        }, ["−"]),
+        el("div", { class: "counter-value" }, [String(state.impostorMax)]),
+        el("button", {
+          class: "btn-icon btn-counter",
+          onclick: () => {
+            if (state.impostorMax < cap) state.impostorMax++;
+            render();
+          },
+        }, ["+"]),
+      ]),
+    ]);
+
+    rangeRow.appendChild(minBlock);
+    rangeRow.appendChild(el("span", { class: "range-sep" }, ["–"]));
+    rangeRow.appendChild(maxBlock);
+    countCard.appendChild(rangeRow);
+
+    const rangeHint = state.impostorMin === state.impostorMax
+      ? `Immer genau ${state.impostorMin} Impostor.`
+      : `Zufällig zwischen ${state.impostorMin} und ${state.impostorMax} Impostor pro Runde.`;
     countCard.appendChild(el("p", { class: "hint" }, [
-      canPlay
-        ? `von ${state.players.length} Spielern (max. ${maxImpostors()})`
-        : "Mindestens 3 Spieler nötig, um zu starten.",
+      canPlay ? `${rangeHint} (von ${state.players.length} Spielern, max. ${cap})` : "Mindestens 3 Spieler nötig, um zu starten.",
     ]));
     wrap.appendChild(countCard);
 
@@ -202,11 +246,13 @@
   // ---------- Round setup ----------
   function startRound() {
     const order = shuffle(state.players);
-    const impostors = new Set(shuffle(state.players).slice(0, state.impostorCount));
+    const impostorCount = Math.min(randomInRange(state.impostorMin, state.impostorMax), maxImpostors());
+    const impostors = new Set(shuffle(state.players).slice(0, impostorCount));
     const pair = pickRandomQuestionPair();
     state.round = {
       order,
       impostors,
+      impostorCount,
       pair,
       turnIndex: 0,
       revealed: false,
@@ -327,7 +373,7 @@
   function screenReveal() {
     const r = state.round;
     const wrap = el("div", { class: "screen screen-reveal" });
-    wrap.appendChild(header("AUFGEDECKT", state.impostorCount === 1 ? "1 IMPOSTOR" : r.impostors.size + " IMPOSTOR"));
+    wrap.appendChild(header("AUFGEDECKT", r.impostorCount === 1 ? "1 IMPOSTOR" : r.impostorCount + " IMPOSTOR"));
 
     const list = el("div", { class: "reveal-list" });
     r.order.forEach((name) => {
