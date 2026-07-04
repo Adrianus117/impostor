@@ -18,7 +18,7 @@ braucht sie danach kein Internet mehr.
 2. Lade alle Dateien aus diesem Ordner in das Repository hoch
    (`index.html`, `style.css`, `app.js`, `questions.js`, `manifest.json`,
    `service-worker.js`, den Ordner `icons/`).
-3. Gehe im Repository zu **Settings → Pages**.
+3. Gehe im Repository zu **Settings → Pages**
 4. Bei "Source" wähle den Branch `main` und Ordner `/ (root)`, dann
    **Save**.
 5. Nach ca. 1 Minute ist die App erreichbar unter:
