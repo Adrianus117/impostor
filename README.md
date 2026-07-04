@@ -49,6 +49,7 @@ Worker zwischengespeichert werden.
 - Handy wird reihum weitergegeben, jeder tippt seine Antwort ein.
 - Danach wird die "richtige" Frage und alle Antworten offengelegt –
   die Gruppe diskutiert und deckt anschließend im Spiel auf, wer
-  Impostor war.
+  Impostor war
+  
 - Fragenpool erweitern: einfach in `questions.js` weitere Einträge nach
   dem gleichen Muster (`category`, `crew`, `impostor`) ergänzen.
